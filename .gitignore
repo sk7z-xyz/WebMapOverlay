@@ -1,0 +1,8 @@
+node_modules/
+dist/
+user-data/
+settings.json
+build/bin/
+native/build/
+*.user
+ci-signing-public/

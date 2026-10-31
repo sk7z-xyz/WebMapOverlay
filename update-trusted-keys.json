@@ -1,0 +1,15 @@
+{
+  "schema": "webmapoverlay.trusted-keys.v1",
+  "keys": [
+    {
+      "name": "primary",
+      "id": "5dff5226ed4e5414e9bdd37248f38626e13b9e6b89c758495fe63dbb2bd6f743",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEa9tzQEpi2wIHzsDYV0x1D9RVA1aU\nJDw3SeKpquxqMq/k6rPmIikdQueFnS9IEc80PEtFjTCpYUYcEey1CR01lQ==\n-----END PUBLIC KEY-----\n"
+    },
+    {
+      "name": "backup",
+      "id": "0b6eb749bf8735bdc5de9c9e38d7aae19b0322efc8d838872ff4bb3c628290be",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEPtKUJKsedfAqZ8GiJUwYz2LidInG\n93q80CdDWgBs3/NevXF5ZmM4gpbsDkndceigw/cLo9yy+Qa2cpjUn2Xujg==\n-----END PUBLIC KEY-----\n"
+    }
+  ]
+}

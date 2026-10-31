@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>設定</title>
+  <style>
+    :root {
+      --bg: #eef1f5;
+      --panel: #ffffff;
+      --panel-hover: #f7f8fa;
+      --line: #dde1e8;
+      --text: #1f2430;
+      --muted: #6b7280;
+      --accent: #2f7dfa;
+      --accent-soft: rgba(47, 125, 250, .13);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 560px;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "Segoe UI", "Yu Gothic UI", sans-serif;
+      font-size: 13px;
+      user-select: none;
+    }
+    .shell { width: 100%; max-width: 640px; margin: 0 auto; padding: 18px 20px 16px; }
+    header { margin-bottom: 14px; }
+    h1 { margin: 0 0 4px; font-size: 19px; letter-spacing: .03em; }
+    header p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .section-title {
+      margin: 13px 0 6px;
+      color: #596273;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+    }
+    .bindings { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+    .binding-row {
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: minmax(210px, 1fr) 172px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 10px 7px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .binding-row:last-child { border-bottom: 0; }
+    .binding-row:hover { background: var(--panel-hover); }
+    .action-name { font-size: 13px; font-weight: 650; }
+    .action-help { margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .bind-button {
+      width: 100%;
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid #cfd5df;
+      border-radius: 5px;
+      background: #fbfbfc;
+      color: var(--text);
+      font: 600 12.5px inherit;
+      cursor: pointer;
+    }
+    .bind-button:hover { border-color: var(--accent); background: #f3f7ff; }
+    .bind-button.capturing {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #1f63d6;
+      box-shadow: 0 0 0 2px rgba(77, 145, 255, .16);
+    }
+    .anchor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 8px;
+    }
+    .anchor-button {
+      min-height: 32px;
+      border: 1px solid #cfd5df;
+      border-radius: 5px;
+      background: #fbfbfc;
+      color: var(--text);
+      font: 600 12.5px inherit;
+      cursor: pointer;
+    }
+    .anchor-button:hover { border-color: var(--accent); background: #f3f7ff; }
+    .anchor-button.selected { border-color: var(--accent); background: var(--accent-soft); color: #1f63d6; }
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 13px;
+    }
+    #message { min-height: 20px; color: var(--muted); font-size: 12px; }
+    .footer-buttons { display: flex; gap: 9px; }
+    .footer button {
+      min-width: 96px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font: 650 13px inherit;
+      cursor: pointer;
+    }
+    #reset { border: 1px solid #cfd5df; background: #fbfbfc; color: #4b5563; }
+    #done { border: 1px solid var(--accent); background: var(--accent); color: white; }
+    .hint { margin-top: 8px; color: #6b7280; font-size: 10.5px; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <h1>設定</h1>
+      <p>変更する項目をクリックして、割り当てたいキーを押してください。</p>
+    </header>
+
+    <div class="section-title">マップ位置</div>
+    <section class="bindings">
+      <div class="anchor-grid">
+        <button class="anchor-button" data-anchor="top-left">左上</button>
+        <button class="anchor-button" data-anchor="top-right">右上</button>
+        <button class="anchor-button" data-anchor="bottom-left">左下</button>
+        <button class="anchor-button" data-anchor="bottom-right">右下</button>
+      </div>
+    </section>
+
+    <div class="section-title">オーバーレイ</div>
+    <section class="bindings">
+      <div class="binding-row">
+        <div><div class="action-name">表示 / 非表示</div><div class="action-help">0.5秒未満の短押しで切り替え</div></div>
+        <button class="bind-button" data-action="toggle"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">スポット</div><div class="action-help">Groundモード中、視線位置にUnknownTankをスポット</div></div>
+        <button class="bind-button" data-action="spot"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">サイズを大きく</div><div class="action-help">押しっぱなしで連続変更</div></div>
+        <button class="bind-button" data-action="sizeIncrease"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">サイズを小さく</div><div class="action-help">押しっぱなしで連続変更</div></div>
+        <button class="bind-button" data-action="sizeDecrease"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">透明度を上げる</div><div class="action-help">押しっぱなしで連続変更</div></div>
+        <button class="bind-button" data-action="opacityIncrease"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">透明度を下げる</div><div class="action-help">押しっぱなしで連続変更</div></div>
+        <button class="bind-button" data-action="opacityDecrease"></button>
+      </div>
+    </section>
+
+    <div class="section-title">WEBMAP</div>
+    <section class="bindings">
+      <div class="binding-row">
+        <div><div class="action-name">地図を拡大</div><div class="action-help">WebMap の表示範囲を変更</div></div>
+        <button class="bind-button" data-action="zoomIn"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">地図を縮小</div><div class="action-help">WebMap の表示範囲を変更</div></div>
+        <button class="bind-button" data-action="zoomOut"></button>
+      </div>
+      <div class="binding-row">
+        <div><div class="action-name">WebMapを更新</div><div class="action-help">白画面や表示不良時にページを再読み込み</div></div>
+        <button class="bind-button" data-action="reload"></button>
+      </div>
+    </section>
+
+    <div class="section-title">マウス操作</div>
+    <section class="bindings">
+      <div class="binding-row">
+        <div><div class="action-name">ホイール調整キー</div><div class="action-help">押しながら縦ホイールでサイズ、左右チルトで透明度</div></div>
+        <button class="bind-button" data-action="mouseModifier"></button>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div id="message">変更は自動的に保存されます。</div>
+      <div class="footer-buttons">
+        <button id="reset" type="button">初期設定に戻す</button>
+        <button id="done" type="button">完了</button>
+      </div>
+    </div>
+    <div class="hint">Esc：入力をキャンセル　／　Backspace または Delete：割り当てを解除</div>
+  </main>
+
+  <script>
+    const defaults = {
+      toggle: 'NonConvert', spot: 'KeyQ', zoomIn: 'KeyZ', zoomOut: 'KeyX', reload: 'F5',
+      sizeIncrease: 'BracketRight', sizeDecrease: 'BracketLeft',
+      opacityIncrease: 'PageUp', opacityDecrease: 'PageDown', mouseModifier: 'NonConvert',
+    };
+    const labels = {
+      NonConvert: '無変換', Convert: '変換', AltLeft: '左 Alt', AltRight: '右 Alt',
+      ControlLeft: '左 Ctrl', ControlRight: '右 Ctrl', ShiftLeft: '左 Shift', ShiftRight: '右 Shift',
+      MetaLeft: '左 Windows', MetaRight: '右 Windows', Space: 'Space', Tab: 'Tab', CapsLock: 'Caps Lock',
+      Enter: 'Enter', Escape: 'Esc', Insert: 'Insert', Home: 'Home', End: 'End', PageUp: 'Page Up', PageDown: 'Page Down',
+      ArrowLeft: '←', ArrowUp: '↑', ArrowRight: '→', ArrowDown: '↓',
+      Backquote: '`', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']', Backslash: '\\',
+      Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/',
+      NumpadMultiply: 'テンキー *', NumpadAdd: 'テンキー +', NumpadSubtract: 'テンキー -',
+      NumpadDecimal: 'テンキー .', NumpadDivide: 'テンキー /',
+    };
+    let settings = {};
+    let bindings = { ...defaults };
+    let overlayAnchor = 'bottom-left';
+    let capturingAction = null;
+
+    function canShareBinding(first, second) {
+      return (first === 'toggle' && second === 'mouseModifier') || (first === 'mouseModifier' && second === 'toggle');
+    }
+
+    function keyLabel(code) {
+      if (!code) return '割り当てなし';
+      if (labels[code]) return labels[code];
+      if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+      if (/^Digit[0-9]$/.test(code)) return code.slice(5);
+      if (/^Numpad[0-9]$/.test(code)) return `テンキー ${code.slice(6)}`;
+      if (/^F(?:[1-9]|1[0-2])$/.test(code)) return code;
+      return null;
+    }
+
+    function render() {
+      document.querySelectorAll('.bind-button').forEach((button) => {
+        const action = button.dataset.action;
+        button.textContent = capturingAction === action ? 'キーを入力…' : keyLabel(bindings[action]);
+        button.classList.toggle('capturing', capturingAction === action);
+      });
+      document.querySelectorAll('.anchor-button').forEach((button) => {
+        button.classList.toggle('selected', button.dataset.anchor === overlayAnchor);
+      });
+      const message = document.getElementById('message');
+      message.textContent = '変更は自動的に保存されます。';
+    }
+
+    function assignBinding(action, code) {
+      const cleared = [];
+      for (const [otherAction, otherCode] of Object.entries(bindings)) {
+        if (otherAction !== action && otherCode === code && !canShareBinding(action, otherAction)) {
+          bindings[otherAction] = null;
+          cleared.push(otherAction);
+        }
+      }
+      bindings[action] = code;
+      if (cleared.length > 0) document.getElementById('message').textContent = '同じキーの既存の割り当てを解除しました。';
+    }
+
+    async function save() {
+      settings = await window.overlay.saveSettings({ ...settings, keyBindings: { ...bindings }, overlayAnchor });
+    }
+
+    document.querySelectorAll('.bind-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        capturingAction = button.dataset.action;
+        render();
+      });
+    });
+    document.querySelectorAll('.anchor-button').forEach((button) => {
+      button.addEventListener('click', async () => {
+        overlayAnchor = button.dataset.anchor;
+        render();
+        await save();
+      });
+    });
+
+    window.addEventListener('keydown', async (event) => {
+      if (!capturingAction) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.code === 'Escape') {
+        capturingAction = null;
+        render();
+        return;
+      }
+      if (event.code === 'Backspace' || event.code === 'Delete') {
+        bindings[capturingAction] = null;
+      } else if (keyLabel(event.code)) {
+        assignBinding(capturingAction, event.code);
+      } else {
+        document.getElementById('message').textContent = 'このキーは現在割り当てできません。';
+        return;
+      }
+      capturingAction = null;
+      render();
+      await save();
+    }, true);
+
+    document.getElementById('reset').addEventListener('click', async () => {
+      capturingAction = null;
+      bindings = { ...defaults };
+      overlayAnchor = 'bottom-left';
+      render();
+      await save();
+    });
+    document.getElementById('done').addEventListener('click', () => window.overlay.closeKeybindings());
+
+    (async () => {
+      settings = await window.overlay.settings();
+      bindings = { ...defaults, ...(settings.keyBindings || {}) };
+      overlayAnchor = settings.overlayAnchor || 'bottom-left';
+      render();
+    })();
+  </script>
+</body>
+</html>

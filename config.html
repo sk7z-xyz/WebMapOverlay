@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>WebMap Overlay</title>
+<style>
+  :root {
+    --bg: #eef1f5;
+    --panel: #ffffff;
+    --panel-hover: #f4f5f7;
+    --border: #dde1e8;
+    --text: #1f2430;
+    --muted: #6b7280;
+    --accent: #2f7dfa;
+    --accent-dark: #1f63d6;
+    --ok-bg: #dff5e3;
+    --ok-text: #1c7a3b;
+    --err-bg: #fce4e1;
+    --err-text: #b3261e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 14px 16px 16px;
+    min-width: 400px;
+    background: var(--panel);
+    color: var(--text);
+    font-family: -apple-system, "Segoe UI", "Yu Gothic UI", "Hiragino Kaku Gothic ProN", sans-serif;
+    font-size: 13px;
+  }
+
+  .card { max-width: 440px; margin: 0 auto; }
+
+  .app-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 9px; }
+
+  h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.3;
+  }
+
+  .section { margin-bottom: 8px; padding: 9px 10px 10px; border: 1px solid var(--border); border-radius: 7px; background: #fcfcfd; }
+  .section-title { margin: 0 0 7px; color: var(--muted); font-size: 11px; font-weight: 600; }
+  .row { margin-bottom: 7px; }
+  .row:last-child { margin-bottom: 0; }
+
+  /* .row の display:flex が hidden 属性の既定スタイルを上書きするため明示する。 */
+  .row[hidden] { display: none !important; }
+
+  .row label {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .row-heading { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+
+  .row-heading label { margin-bottom: 0; }
+
+  .connection-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+  .connection-actions[hidden] { display: none !important; }
+  .connection-button {
+    padding: 6px 8px;
+    background: #ffffff;
+    border: 1px solid #9ca3af;
+    color: #4b5563;
+    font-size: 10.5px;
+  }
+
+  .connection-button.default { background: #eaf0fe; border-color: #b9cbf7; color: #2e63e7; font-weight: 600; }
+  .connection-button:hover { background: #f4f5f7; border-color: #6b7280; }
+  .connection-button.debug { background: #fff3cd; color: #856404; }
+  .connection-button.debug:hover { background: #ffeaa7; }
+
+  input, select {
+    width: 100%;
+    padding: 5px 8px;
+    background: #fbfbfc;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-size: 12.5px;
+    font-family: inherit;
+  }
+
+  input:hover, select:hover { border-color: #c3c9d3; }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47, 125, 250, .15);
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px;
+  }
+
+  .user-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  #refresh {
+    min-width: 68px;
+    padding: 5px 8px;
+    background: #f4f5f7;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  #refresh:hover { border-color: #c3c9d3; background: #ebedf1; }
+
+  #keybindings {
+    width: 100%;
+    padding: 5px 8px;
+    text-align: center;
+    background: #f4f5f7;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  #keybindings:hover { border-color: #c3c9d3; background: #ebedf1; }
+
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .mode-option {
+    display: flex !important;
+    align-items: center;
+    gap: 5px;
+    min-height: 44px;
+    margin: 0 !important;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: #fbfbfc;
+    color: var(--text) !important;
+    cursor: pointer;
+    line-height: 1.3;
+    justify-content: center;
+    text-align: center;
+  }
+  .mode-option.selected {
+    border-color: var(--accent);
+    background: #eef5ff;
+  }
+  .mode-option:has(input:disabled) { cursor: not-allowed; opacity: .65; }
+  .mode-option input { position: absolute; opacity: 0; pointer-events: none; }
+  .mode-description {
+    margin: 6px 0 0;
+    padding: 7px 8px;
+    border: 1px solid #f1dba6;
+    border-radius: 5px;
+    background: #fdf3e1;
+    color: #9a6505;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .mode-description.safe {
+    border-color: var(--border);
+    background: #f4f5f7;
+    color: var(--muted);
+  }
+  .mode-hint { margin: 5px 1px 0; color: var(--muted); font-size: 11px; }
+  .overlay-action { margin: 2px 0 8px; }
+  .overlay-action button {
+    width: 100%;
+    padding: 9px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 12.5px;
+  }
+
+  .overlay-action button:hover { background: var(--accent-dark); }
+  .overlay-action button:disabled { cursor: not-allowed; opacity: .55; }
+
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  #status {
+    margin-bottom: 8px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    background: #f4f5f7;
+    color: var(--muted);
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  #status.ok { background: var(--ok-bg); color: var(--ok-text); }
+  #status.err { background: var(--err-bg); color: var(--err-text); }
+  #diagnostics { display: grid; color: var(--muted); font-size: 11px; }
+  .diagnostic-line { display: flex; justify-content: space-between; gap: 12px; padding: 4px 2px; border-bottom: 1px solid var(--border); }
+  .diagnostic-line:last-child { border-bottom: 0; }
+  .diagnostic-line strong { color: var(--text); font-weight: 600; text-align: right; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  .app-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 10px;
+    margin-top: 0;
+  }
+  .app-options label {
+    display: inline-flex;
+    align-items: center;
+    color: var(--muted);
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+  .app-options input { width: auto; margin: 0 5px 0 0; }
+  .utility-row { display: flex; justify-content: space-between; margin-top: 8px; }
+  #showLicenses {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: #f4f5f7;
+    color: var(--text);
+  }
+  #showLicenses:hover { border-color: #c3c9d3; background: #ebedf1; }
+  #restartApp {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: #f4f5f7;
+    color: var(--text);
+  }
+  #restartApp:hover { border-color: #c3c9d3; background: #ebedf1; }
+  .utility-row { gap: 8px; }
+
+  #keybindings { width: auto; padding: 6px 11px; background: #fff; }
+  .doc-links { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .doc-link { padding: 0; border: 0; background: transparent; color: var(--muted); font-size: 11px; text-decoration: underline; }
+  .doc-link:hover { background: transparent; color: var(--text); }
+</style>
+<body>
+  <main class="card">
+    <div class="app-head">
+      <h2>WebMap Overlay</h2>
+      <p class="subtitle">Stormworks の画面上に WebMap を表示します</p>
+    </div>
+
+    <div id="status">設定を選択して開始してください。</div>
+
+    <section class="section" aria-labelledby="connectionTitle">
+      <h3 id="connectionTitle" class="section-title">接続設定</h3>
+      <div id="url-row" class="row">
+        <label for="url">接続先URL</label>
+        <input id="url" value="https://webmap.sk7z.xyz/">
+      </div>
+      <div class="row">
+        <label for="user">ユーザー名</label>
+        <div class="user-controls">
+          <select id="user"><option value="">一覧を取得してください</option></select>
+          <button id="refresh" type="button">一覧更新</button>
+        </div>
+      </div>
+      <div id="connectionActions" class="connection-actions">
+        <button id="resetDefault" class="connection-button default" type="button">デフォルトに戻す</button>
+        <button id="useDebugUrl" class="connection-button debug" type="button" hidden>デバッグ用に変更</button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="displayTitle">
+      <h3 id="displayTitle" class="section-title">表示方式</h3>
+      <div class="mode-toggle" role="radiogroup" aria-label="表示方式">
+        <label class="mode-option selected" for="modeSafe">
+          <input id="modeSafe" name="overlayMode" type="radio" value="safe" checked>
+          <span>通常オーバーレイ（安全）</span>
+        </label>
+        <label class="mode-option" for="modeInjection">
+          <input id="modeInjection" name="overlayMode" type="radio" value="injection">
+          <span>ゲーム内描画（フルスクリーン対応）</span>
+        </label>
+      </div>
+      <p id="modeDescription" class="mode-description"></p>
+      <p id="modeHint" class="mode-hint" hidden>方式を切り替えるには、一度オーバーレイを終了してください。</p>
+    </section>
+
+    <section class="section" aria-labelledby="startupTitle">
+      <h3 id="startupTitle" class="section-title">起動オプション</h3>
+      <div class="app-options">
+        <label><input id="launchWithStormworks" type="checkbox">StormWorks起動と同時に自動起動</label>
+        <label><input id="autoExitOnStormworksExit" type="checkbox">StormWorks終了と同時に自動終了</label>
+        <label><input id="autoConnect" type="checkbox">起動時に自動でオーバーレイ開始</label>
+        <label><input id="hardwareAcceleration" type="checkbox">ハードウェアアクセラレーションを使用</label>
+        <label><input id="developerMode" type="checkbox">開発者モード</label>
+      </div>
+    </section>
+
+    <div class="overlay-action">
+      <button id="overlayButton" type="button">オーバーレイ開始</button>
+    </div>
+
+    <section class="section" aria-labelledby="statusTitle">
+      <h3 id="statusTitle" class="section-title">現在の状態</h3>
+      <div id="diagnostics">
+      <div class="diagnostic-line"><span>表示</span><strong id="displayState">停止中</strong></div>
+      <div class="diagnostic-line"><span>接続先</span><strong id="apiState">未確認</strong></div>
+      <div class="diagnostic-line"><span>マップサイズ / ズーム</span><strong><span id="mapSizeState">30%</span> / <span id="mapZoomState">0.1</span></strong></div>
+      <div class="diagnostic-line"><span>透明度</span><strong id="opacityState">90%</strong></div>
+      </div>
+      <div class="sr-only" aria-live="polite">描画方式: <span id="modeState">通常オーバーレイ（安全）</span>、方式の状態: <span id="injectionState">停止</span></div>
+    </section>
+    <div class="utility-row">
+      <button id="keybindings" type="button">詳細設定を開く</button>
+      <button id="restartApp" type="button" hidden>再起動して反映</button>
+      <div class="doc-links">
+        <button id="showReadme" class="doc-link" type="button">READMEを表示</button>
+        <button id="showLicenses" class="doc-link" type="button">ライセンスを表示</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  const url = document.getElementById('url');
+  const user = document.getElementById('user');
+  const status = document.getElementById('status');
+  const developerMode = document.getElementById('developerMode');
+  const autoConnect = document.getElementById('autoConnect');
+  const launchWithStormworks = document.getElementById('launchWithStormworks');
+  const autoExitOnStormworksExit = document.getElementById('autoExitOnStormworksExit');
+  const hardwareAcceleration = document.getElementById('hardwareAcceleration');
+    const resetDefault = document.getElementById('resetDefault');
+    const useDebugUrl = document.getElementById('useDebugUrl');
+    const connectionActions = document.getElementById('connectionActions');
+    const displayState = document.getElementById('displayState');
+    const apiState = document.getElementById('apiState');
+    const mapSizeState = document.getElementById('mapSizeState');
+    const mapZoomState = document.getElementById('mapZoomState');
+    const opacityState = document.getElementById('opacityState');
+    const modeState = document.getElementById('modeState');
+    const injectionState = document.getElementById('injectionState');
+    const modeSafe = document.getElementById('modeSafe');
+    const modeInjection = document.getElementById('modeInjection');
+    const modeDescription = document.getElementById('modeDescription');
+    const modeHint = document.getElementById('modeHint');
+    const overlayButton = document.getElementById('overlayButton');
+    let saved = {};
+    let isRunning = false;
+    let selectedMode = 'safe';
+    let stormworksTaskNeedsUpdate = false;
+    const defaultUrl = 'https://webmap.sk7z.xyz/';
+    const debugUrl = 'http://localhost:5000/';
+    const current = () => ({
+      url: url.value,
+      hostUserName: '',
+      userName: user.value,
+      developerMode: developerMode.checked,
+      autoConnect: autoConnect.checked,
+      launchWithStormworks: launchWithStormworks.checked,
+      autoExitOnStormworksExit: autoExitOnStormworksExit.checked,
+      hardwareAcceleration: hardwareAcceleration.checked,
+      overlayMode: selectedMode,
+    });
+    function updateDeveloperMode() {
+      const enabled = developerMode.checked;
+      document.getElementById('url-row').hidden = !enabled;
+      connectionActions.hidden = !enabled;
+      url.disabled = !enabled;
+      useDebugUrl.hidden = !enabled;
+    }
+    function setStatus(text, kind) {
+      status.textContent = text;
+      status.classList.remove('ok', 'err');
+      if (kind) status.classList.add(kind);
+    }
+    function modeLabel(mode) { return mode === 'injection' ? 'ゲーム内描画（フルスクリーン対応）' : '通常オーバーレイ（安全）'; }
+    function modeDescriptionText(mode) {
+      if (mode === 'injection') return 'Stormworksの画面内部にWebMapを描画します。排他フルスクリーンでも利用でき、ゲーム画面の一部としてキャプチャに映ります。DLLをゲームプロセスへ読み込むため、まれにゲームがクラッシュしたり、セキュリティソフトが警告したりする可能性があります。';
+      return 'Stormworksの上に別ウィンドウとしてWebMapを表示します。ゲーム本体へ変更を加えない安全な方式です。排他フルスクリーンでは利用できません。ゲームキャプチャでは通常表示されません。画面全体をキャプチャする配信では映る場合があります。';
+    }
+    function updateModeSelection() {
+      selectedMode = modeInjection.checked ? 'injection' : 'safe';
+      modeSafe.checked = selectedMode === 'safe';
+      modeInjection.checked = selectedMode === 'injection';
+      modeSafe.closest('.mode-option').classList.toggle('selected', selectedMode === 'safe');
+      modeInjection.closest('.mode-option').classList.toggle('selected', selectedMode === 'injection');
+      modeDescription.textContent = modeDescriptionText(selectedMode);
+      modeDescription.classList.toggle('safe', selectedMode === 'safe');
+      modeHint.hidden = !isRunning;
+      modeSafe.disabled = isRunning;
+      modeInjection.disabled = isRunning;
+    }
+    function setSelectedMode(mode) {
+      selectedMode = mode === 'injection' ? 'injection' : 'safe';
+      modeSafe.checked = selectedMode === 'safe';
+      modeInjection.checked = selectedMode === 'injection';
+      updateModeSelection();
+    }
+    function updateOverlayButton() {
+      overlayButton.textContent = isRunning ? 'オーバーレイ終了' : 'オーバーレイ開始';
+      updateModeSelection();
+    }
+    setSelectedMode('safe');
+    function connectionStateLabel(apiStatus) {
+      const statusText = String(apiStatus || '');
+      if (statusText === 'API確認中') return 'API確認中';
+      if (statusText === '未接続（ユーザー未選択）') return 'ユーザー未選択';
+      if (statusText === '未接続（プレイヤー情報なし）') return 'プレイヤー情報なし';
+      if (statusText === '未接続（オフライン）') return 'オフライン';
+      if (statusText === '未接続（接続先を確認できません）') return '接続先不明';
+      if (statusText.startsWith('未接続（確認できません')) return 'API確認失敗';
+      return '';
+    }
+    function stormworksStateLabel(info) {
+      if (!info.stormworksWindowAvailable) return 'StormWorks を検出できません';
+      return info.gameActive ? 'StormWorks がアクティブ' : 'StormWorks が非アクティブ';
+    }
+    function displayStateLabel(info) {
+      if (!info.running || info.displayReason === 'stopped') return '停止中';
+      if (info.mode === 'injection' && info.injectionStatus === '注入中') return '非表示（ゲーム内描画を開始中）';
+      if (info.mode === 'injection' && info.injectionStatus === '失敗') return '非表示（ゲーム内描画の開始に失敗）';
+      if (info.mode === 'injection' && info.injectionStatus === '休止') return '非表示（ゲーム内描画は休止中）';
+      if (info.displayReason === 'tracker-unavailable') return '非表示（StormWorks監視を再起動中）';
+      if (info.mode === 'injection' && info.displayReason === 'visible') {
+        const connectionState = connectionStateLabel(info.apiStatus);
+        return `表示（ゲーム内描画 | ${connectionState || 'オンライン'}）`;
+      }
+
+      const connectionState = connectionStateLabel(info.apiStatus);
+      if (info.mode !== 'injection' && connectionState && info.stormworksWindowAvailable) {
+        // 未接続時は設定画面へのフォーカス移動による前面判定より、表示不可の理由を優先する。
+        return `非表示（StormWorks がアクティブ | ${connectionState}）`;
+      }
+
+      const stormworksState = stormworksStateLabel(info);
+      switch (info.displayReason) {
+        case 'visible':
+          return info.gameActive
+            ? '表示（StormWorks がアクティブ | オンライン）'
+            : `非表示（${stormworksState} | オンライン）`;
+        case 'page-loading':
+          return `非表示（${stormworksState} | WebMap読み込み中）`;
+        case 'page-error':
+          return `非表示（${stormworksState} | WebMap読み込み失敗）`;
+        case 'manual-hidden':
+          return `非表示（${stormworksState} | 表示切替キー）`;
+        case 'game-inactive':
+          return '非表示（StormWorks が非アクティブ | オンライン）';
+        case 'game-window-not-found':
+          return '非表示（StormWorks を検出できません）';
+        case 'waiting-player':
+          return `非表示（${stormworksState} | プレイヤー情報を確認中）`;
+        case 'player-not-selected':
+          return `非表示（${stormworksState} | ユーザー未選択）`;
+        case 'player-not-found':
+          return `非表示（${stormworksState} | プレイヤー情報なし）`;
+        case 'player-offline':
+          return `非表示（${stormworksState} | オフライン）`;
+        case 'player-host-unknown':
+          return `非表示（${stormworksState} | 接続先不明）`;
+        case 'api-unavailable':
+          return `非表示（${stormworksState} | API確認失敗）`;
+        default:
+          return `非表示（${stormworksState} | 状態確認中）`;
+      }
+    }
+    async function refreshDiagnostics() {
+      const info = await window.overlay.diagnostics();
+      displayState.textContent = displayStateLabel(info);
+      modeState.textContent = modeLabel(info.mode);
+      injectionState.textContent = info.injectionStatus || '停止';
+      if (info.injectionDetail) injectionState.title = info.injectionDetail;
+      apiState.textContent = info.hostUserName || info.apiStatus || '未確認';
+      mapSizeState.textContent = `${info.overlaySizePercent ?? 30}%`;
+      const zoom = Number(info.mapZoom);
+      mapZoomState.textContent = Number.isFinite(zoom) ? String(Number(zoom.toFixed(3))) : '0.1';
+      opacityState.textContent = `${info.opacityPercent ?? 90}%`;
+    }
+    function setOptions(select, items, placeholder) {
+      select.replaceChildren(new Option(placeholder, ''));
+      for (const item of items) select.add(new Option(item.label, item.value));
+    }
+    async function refresh() {
+      setStatus('一覧を取得中...');
+      const result = await window.overlay.loadSelectionLists();
+      if (!result.ok) { setStatus(`一覧取得エラー: ${result.error}`, 'err'); return false; }
+      setOptions(user, result.users, 'ユーザーを選択');
+      user.value = saved.userName || '';
+      setStatus(`ユーザー ${result.users.length} 件を読み込みました。接続先は自動で選択します。`);
+      return true;
+    }
+    document.getElementById('refresh').addEventListener('click', refresh);
+    document.getElementById('keybindings').addEventListener('click', () => window.overlay.openKeybindings());
+    document.getElementById('showReadme').addEventListener('click', () => window.overlay.showReadme());
+    document.getElementById('showLicenses').addEventListener('click', () => window.overlay.showLicenses());
+    document.getElementById('restartApp').addEventListener('click', () => window.overlay.restartApp());
+    async function applyConnectionUrl(nextUrl, message) {
+      url.value = nextUrl;
+      saved = await window.overlay.saveSettings(current());
+      if (await refresh()) setStatus(message, 'ok');
+    }
+    resetDefault.addEventListener('click', () => applyConnectionUrl(defaultUrl, '接続先をデフォルトに戻しました。'));
+    useDebugUrl.addEventListener('click', () => applyConnectionUrl(debugUrl, '接続先をデバッグ用に変更しました。'));
+    async function selectMode() {
+      if (isRunning) return;
+      updateModeSelection();
+      saved = await window.overlay.saveSettings(current());
+    }
+    async function toggleOverlay() {
+      if (!isRunning) {
+        saved = current();
+        const mode = selectedMode;
+        const result = await window.overlay.start(saved, mode);
+        if (!result.ok) { setStatus(`エラー: ${result.error}`, 'err'); return; }
+        isRunning = true;
+        saved.runningMode = mode;
+        updateOverlayButton();
+        setStatus(mode === 'injection' ? 'ゲーム内描画を開始しました。Stormworksを検出すると準備します。' : '通常オーバーレイを開始しました。Stormworksを検出するとマップを表示します。', 'ok');
+      } else {
+        const result = await window.overlay.stop();
+        if (!result.ok) { setStatus(`エラー: ${result.error}`, 'err'); return; }
+        isRunning = false;
+        saved.runningMode = null;
+        updateOverlayButton();
+        setStatus('設定を選択して開始してください。');
+      }
+    }
+    modeSafe.addEventListener('change', selectMode);
+    modeInjection.addEventListener('change', selectMode);
+    overlayButton.addEventListener('click', toggleOverlay);
+    [url, user].forEach((element) => element.addEventListener('change', async () => {
+      saved = await window.overlay.saveSettings(current());
+    }));
+    (async () => {
+      saved = await window.overlay.settings();
+      setSelectedMode(saved.overlayMode || 'safe');
+      url.value = saved.url || defaultUrl;
+      developerMode.checked = Boolean(saved.developerMode);
+      autoConnect.checked = Boolean(saved.autoConnect);
+      autoExitOnStormworksExit.checked = Boolean(saved.autoExitOnStormworksExit);
+      hardwareAcceleration.checked = Boolean(saved.hardwareAcceleration);
+      const stormworksLaunch = await window.overlay.stormworksLaunchStatus();
+      launchWithStormworks.checked = Boolean(stormworksLaunch.enabled);
+      stormworksTaskNeedsUpdate = Boolean(stormworksLaunch.enabled && !stormworksLaunch.current);
+      updateDeveloperMode();
+      const running = await window.overlay.running();
+      if (running.active) {
+        isRunning = true;
+        const diagnostics = await window.overlay.diagnostics();
+        saved.runningMode = diagnostics.mode || saved.overlayMode || 'safe';
+        setSelectedMode(saved.runningMode);
+        updateOverlayButton();
+        setStatus('自動接続でオーバーレイを開始しています。', 'ok');
+      }
+      else updateOverlayButton();
+      await refresh();
+      if (stormworksTaskNeedsUpdate) setStatus('Stormworks 起動連動は以前の設定です。チェックを切り替えると更新できます。', 'err');
+      await refreshDiagnostics();
+      setInterval(refreshDiagnostics, 1000);
+    })();
+    developerMode.addEventListener('change', async () => { updateDeveloperMode(); saved = await window.overlay.saveSettings(current()); });
+    autoConnect.addEventListener('change', async () => { saved = await window.overlay.saveSettings(current()); });
+    autoExitOnStormworksExit.addEventListener('change', async () => { saved = await window.overlay.saveSettings(current()); });
+    hardwareAcceleration.addEventListener('change', async () => {
+      saved = await window.overlay.saveSettings(current());
+      document.getElementById('restartApp').hidden = false;
+      setStatus('ハードウェアアクセラレーションの変更は再起動後に反映されます。', 'ok');
+    });
+    launchWithStormworks.addEventListener('change', async () => {
+      const result = await window.overlay.setStormworksLaunch(launchWithStormworks.checked);
+      launchWithStormworks.checked = Boolean(result.enabled);
+      saved = await window.overlay.saveSettings(current());
+      if (result.ok) setStatus(result.enabled ? 'StormWorksの起動にあわせて自動起動します。' : 'StormWorksの起動連動を解除しました。', 'ok');
+      else if (result.cancelled) setStatus('Stormworks 起動連動の設定は変更していません。');
+      else setStatus(`Stormworks 起動連動の設定に失敗しました: ${result.error}`, 'err');
+    });
+  </script>
+</body>
+</html>
