@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const {installerName, hashInstallerSync, assertUpdateMatches} = require('../../update-signature');
-const {assertNoSymlinkPath} = require('../../path-safety');
+const {installerName, hashInstallerSync, assertUpdateMatches} = require('../../src/main/update-signature');
+const {assertNoSymlinkPath} = require('../../src/main/path-safety');
 
 function readMetadata(directory, version) {
     const filename = installerName(version);

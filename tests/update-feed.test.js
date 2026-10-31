@@ -5,8 +5,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const {NsisUpdater} = require('electron-updater/out/NsisUpdater');
-const {createSignedUpdateGuard, fetchReleaseSignature} = require('../signed-updates');
-const {installerName, publicKeyDetails, signingData} = require('../update-signature');
+const {createSignedUpdateGuard, fetchReleaseSignature} = require('../src/main/signed-updates');
+const {installerName, publicKeyDetails, signingData} = require('../src/main/update-signature');
 const publish = require('../package.json').build.win.publish;
 
 function responseBody(bytes) { return {getReader() { let done = false; return {async read() { if (done) return {done: true}; done = true; return {done: false, value: bytes}; }, async cancel() {}}; }, async cancel() {}}; }

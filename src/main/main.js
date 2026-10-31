@@ -5,7 +5,8 @@ const { assertNoSymlinkPath } = require('./path-safety');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const packageJson = require(path.join(__dirname, 'package.json'));
+const appPaths = require('./app-paths');
+const packageJson = require(appPaths.packageJson);
 const windowTrackerScript = require('./window-tracker-script');
 const nativeBridge = require('./native-bridge');
 const { parseTrackerStatus } = require('./tracker-status');
@@ -25,7 +26,7 @@ catch { autoUpdater = null; }
 const defaultUrl = 'https://webmap.sk7z.xyz/';
 const updateFeed = { provider: 'github', owner: 'sk7z-xyz', repo: 'WebMapOverlay', private: false };
 const signedUpdates = autoUpdater ? createSignedUpdateGuard(autoUpdater, {keyDocument: require('./update-trusted-keys.json'), currentVersion: packageJson.version}) : null;
-const appIconPath = path.join(__dirname, 'webmap_mini.png');
+const appIconPath = appPaths.icon;
 const appTitle = `WebMap Overlay v${packageJson.version}`;
 const stormworksLaunchTaskName = 'WebMap Overlay - Stormworks Launcher';
 const startedByStormworks = process.argv.includes('--autostart');
@@ -237,7 +238,7 @@ function saveSettings(settings) {
 function nativeResourcePath(name) {
   const candidates = [
     process.resourcesPath && path.join(process.resourcesPath, name),
-    path.join(__dirname, 'native', 'build', 'Release', name),
+    path.join(appPaths.nativeBuild, name),
   ].filter(Boolean);
   return candidates.find((candidate) => fs.existsSync(candidate)) || candidates[0];
 }
@@ -1268,14 +1269,14 @@ function stormworksLaunchTarget() {
   if (app.isPackaged) return { executable: process.execPath, args: ['--autostart'] };
   return {
     executable: process.execPath,
-    args: [__dirname, `--user-data-dir=${path.join(__dirname, 'user-data')}`, '--autostart'],
+    args: [appPaths.root, `--user-data-dir=${appPaths.developmentUserData}`, '--autostart'],
   };
 }
 
 function stormworksWatcherPath() {
   return app.isPackaged
     ? path.join(process.resourcesPath, 'WebMapOverlayWatcher.exe')
-    : path.join(__dirname, 'build', 'bin', 'WebMapOverlayWatcher.exe');
+    : appPaths.watcher;
 }
 
 function quoteTaskArgument(value) {
@@ -1442,7 +1443,7 @@ function setupAutoUpdater() {
 function showLicenses() {
   const licensePath = app.isPackaged
     ? path.join(process.resourcesPath, 'LICENSES.txt')
-    : path.join(__dirname, 'LICENSES.txt');
+    : appPaths.licenses;
   let licenseText;
   try {
     licenseText = fs.readFileSync(licensePath, 'utf8');
@@ -1466,7 +1467,7 @@ function showReadme() {
   }
   const readmePath = app.isPackaged
     ? path.join(process.resourcesPath, 'README.txt')
-    : path.join(__dirname, 'README.txt');
+    : appPaths.readme;
   let readmeText;
   try {
     readmeText = fs.readFileSync(readmePath, 'utf8');
@@ -1508,9 +1509,9 @@ function createConfigWindow(show = true) {
     minWidth: 420,
     minHeight: 640,
     icon: appIconPath,
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true },
+    webPreferences: { preload: appPaths.preload, contextIsolation: true, sandbox: true },
   });
-  configWindow.loadFile(path.join(__dirname, 'config.html'));
+  configWindow.loadFile(appPaths.config);
   if (!show) {
     // 起動連動時もタスクバーから設定を開けるよう、非アクティブのまま最小化する。
     configWindow.once('ready-to-show', () => {
@@ -1548,9 +1549,9 @@ function createKeybindingsWindow() {
     minHeight: 620,
     autoHideMenuBar: true,
     icon: appIconPath,
-    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true },
+    webPreferences: { preload: appPaths.preload, contextIsolation: true, sandbox: true },
   });
-  keybindingsWindow.loadFile(path.join(__dirname, 'keybindings.html'));
+  keybindingsWindow.loadFile(appPaths.keybindings);
   keybindingsWindow.webContents.on('page-title-updated', (event) => {
     event.preventDefault();
     keybindingsWindow.setTitle(`${appTitle} - 設定`);
@@ -1584,8 +1585,8 @@ async function loadSelectionLists() {
 const registerIpcHandler = ipcMain.handle.bind(ipcMain);
 ipcMain.handle = (channel, handler) => registerIpcHandler(channel, (event, ...args) => {
   const window = BrowserWindow.fromWebContents(event.sender);
-  const allowedFile = window === configWindow ? 'config.html' : window === keybindingsWindow ? 'keybindings.html' : null;
-  if (!allowedFile || event.senderFrame !== event.sender.mainFrame || event.senderFrame.url !== pathToFileURL(path.join(__dirname, allowedFile)).href) {
+  const allowedFile = window === configWindow ? appPaths.config : window === keybindingsWindow ? appPaths.keybindings : null;
+  if (!allowedFile || event.senderFrame !== event.sender.mainFrame || event.senderFrame.url !== pathToFileURL(allowedFile).href) {
     throw new Error('この操作は許可されていません。');
   }
   return handler(event, ...args);

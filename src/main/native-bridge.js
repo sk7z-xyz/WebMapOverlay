@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const {assertNoSymlinkPath} = require('./path-safety');
+const appPaths = require('./app-paths');
 
 let writer;
 let writeFrame;
@@ -17,7 +18,7 @@ function loadNativeWriter() {
   }
   const candidates = [
     process.resourcesPath && path.join(process.resourcesPath, 'WebMapOverlayWriter.dll'),
-    path.join(__dirname, 'native', 'build', 'Release', 'WebMapOverlayWriter.dll'),
+    path.join(appPaths.nativeBuild, 'WebMapOverlayWriter.dll'),
   ].filter(Boolean);
   const dllPath = candidates.find((candidate) => fs.existsSync(candidate));
   if (!dllPath) throw new Error('共有メモリwriterが見つかりません。アプリを再インストールしてください。');

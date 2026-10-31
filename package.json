@@ -1,36 +1,32 @@
 {
   "name": "webmap-overlay",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Stormworks WebMap Overlay",
   "author": "sk7z",
-  "main": "main.js",
+  "main": "src/main/main.js",
   "build": {
     "appId": "xyz.sk7z.webmapoverlay",
     "productName": "WebMap Overlay",
     "artifactName": "WebMapOverlay-${version}-Installer.${ext}",
     "files": [
-      "signed-updates.js",
-      "update-signature.js",
-      "update-trusted-keys.json",
-      "path-safety.js",
-      "main.js",
-      "overlay-settings.js",
-      "tracker-status.js",
-      "window-tracker-script.js",
-      "native-bridge.js",
-      "preload.js",
-      "config.html",
-      "keybindings.html",
-      "webmap_mini.png",
+      "src/main/app-paths.js",
+      "src/main/main.js",
+      "src/main/native-bridge.js",
+      "src/main/overlay-settings.js",
+      "src/main/path-safety.js",
+      "src/main/signed-updates.js",
+      "src/main/tracker-status.js",
+      "src/main/update-signature.js",
+      "src/main/update-trusted-keys.json",
+      "src/main/window-tracker-script.js",
+      "src/preload.js",
+      "src/renderer/config.html",
+      "src/renderer/keybindings.html",
+      "assets/webmap_mini.png",
       "package.json",
       "!settings.json",
       "!user-data{,/**}",
-      "!OverlayTracker{,/**}",
-      "!dist{,/**}",
-      "!scripts{,/**}",
-      "!build{,/**}",
-      "!start-overlay.bat",
-      "!*.md"
+      "!dist{,/**}"
     ],
     "extraResources": [
       {
@@ -75,7 +71,7 @@
           ]
         }
       ],
-      "icon": "webmap_mini.ico",
+      "icon": "assets/webmap_mini.ico",
       "publish": {
         "provider": "github",
         "owner": "sk7z-xyz",

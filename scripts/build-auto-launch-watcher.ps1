@@ -1,10 +1,10 @@
 param()
 
 $projectDirectory = Split-Path -Parent $PSScriptRoot
-$sourcePath = Join-Path $projectDirectory 'AutoLaunchWatcher\Program.cs'
+$sourcePath = Join-Path $projectDirectory 'native\watcher\Program.cs'
 $outputDirectory = Join-Path $projectDirectory 'build\bin'
 $outputPath = Join-Path $outputDirectory 'WebMapOverlayWatcher.exe'
-$iconPath = Join-Path $projectDirectory 'webmap_mini.ico'
+$iconPath = Join-Path $projectDirectory 'assets\webmap_mini.ico'
 $compilerCandidates = @(
   (Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'),
   (Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe')

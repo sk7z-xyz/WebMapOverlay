@@ -5,11 +5,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const {NsisUpdater} = require('electron-updater/out/NsisUpdater');
-const {createSignedUpdateGuard} = require('../signed-updates');
+const {createSignedUpdateGuard} = require('../src/main/signed-updates');
 const {
     installerName, publicKeyDetails, loadTrustedKeys, signingData, verifyEnvelope,
     assertUpdateMatches, hashInstallerSync
-} = require('../update-signature');
+} = require('../src/main/update-signature');
 
 function fixture(t, version = '2.0.0') {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'webmapbridge-signature-test-'));

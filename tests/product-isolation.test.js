@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
-const {publicKeyDetails, loadTrustedKeys, signingData, verifyEnvelope, installerName, assertUpdateMatches} = require('../update-signature');
+const {publicKeyDetails, loadTrustedKeys, signingData, verifyEnvelope, installerName, assertUpdateMatches} = require('../src/main/update-signature');
 
 test('Bridge signatures and product manifests cannot be used as Overlay releases with the same key', () => {
   const pair = crypto.generateKeyPairSync('ec', {namedCurve: 'prime256v1'});
@@ -23,7 +23,7 @@ test('Bridge signatures and product manifests cannot be used as Overlay releases
 });
 
 test('release keys are the two published Bridge keys', () => {
-  const keys = require('../update-trusted-keys.json');
+  const keys = require('../src/main/update-trusted-keys.json');
   assert.deepEqual(keys.keys.map(k => k.id), ['5dff5226ed4e5414e9bdd37248f38626e13b9e6b89c758495fe63dbb2bd6f743','0b6eb749bf8735bdc5de9c9e38d7aae19b0322efc8d838872ff4bb3c628290be']);
   assert.equal(loadTrustedKeys(keys).size, 2);
 });

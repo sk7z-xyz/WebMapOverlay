@@ -5,7 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const yaml = require('js-yaml');
 const {check, refresh} = require('../.github/scripts/installer-metadata');
-const {installerName, hashInstallerSync} = require('../update-signature');
+const {installerName, hashInstallerSync} = require('../src/main/update-signature');
 
 test('post-signing metadata and blockmap are rebuilt from the changed installer', async t => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'overlay-metadata-'));

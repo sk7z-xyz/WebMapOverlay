@@ -1,6 +1,6 @@
 'use strict';
 
-const nativeBridge = require('../native-bridge');
+const nativeBridge = require('../src/main/native-bridge');
 
 const width = 256;
 const height = 256;

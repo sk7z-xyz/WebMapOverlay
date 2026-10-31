@@ -1,8 +1,8 @@
 # Verify that the packaged app.asar contains no local data or development artifacts.
-param()
+param([string]$OutputDirectory = 'dist')
 
 $projectDirectory = Split-Path -Parent $PSScriptRoot
-$asarPath = Join-Path $projectDirectory 'dist\win-unpacked\resources\app.asar'
+$asarPath = Join-Path (Join-Path $projectDirectory $OutputDirectory) 'win-unpacked\resources\app.asar'
 $asarCommand = Join-Path $projectDirectory 'node_modules\.bin\asar.cmd'
 
 if (-not (Test-Path -LiteralPath $asarPath)) {
@@ -18,20 +18,21 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $requiredEntries = @(
-  '\main.js',
-  '\signed-updates.js',
-  '\update-signature.js',
-  '\update-trusted-keys.json',
-  '\path-safety.js',
-  '\overlay-settings.js',
-  '\tracker-status.js',
-  '\window-tracker-script.js',
-  '\native-bridge.js',
-  '\preload.js',
-  '\config.html',
-  '\keybindings.html',
+  '\src\main\main.js',
+  '\src\main\app-paths.js',
+  '\src\main\signed-updates.js',
+  '\src\main\update-signature.js',
+  '\src\main\update-trusted-keys.json',
+  '\src\main\path-safety.js',
+  '\src\main\overlay-settings.js',
+  '\src\main\tracker-status.js',
+  '\src\main\window-tracker-script.js',
+  '\src\main\native-bridge.js',
+  '\src\preload.js',
+  '\src\renderer\config.html',
+  '\src\renderer\keybindings.html',
   '\package.json',
-  '\webmap_mini.png'
+  '\assets\webmap_mini.png'
 )
 foreach ($entry in $requiredEntries) {
   if ($entries -notcontains $entry) {
@@ -55,6 +56,18 @@ foreach ($pattern in $forbiddenPatterns) {
     throw "A forbidden file is included in app.asar: $($matchedEntries -join ', ')"
   }
 }
+
+# Ask Electron itself to resolve the moved modules inside app.asar, without opening a window.
+$productName = (Get-Content -Raw -LiteralPath (Join-Path $projectDirectory 'package.json') | ConvertFrom-Json).build.productName
+$unpackedDirectory = Split-Path -Parent (Split-Path -Parent $asarPath)
+$electronExecutable = Join-Path $unpackedDirectory "$productName.exe"
+if (-not (Test-Path -LiteralPath $electronExecutable -PathType Leaf)) { throw 'Electron executable is missing.' }
+$previousRunAsNode = $env:ELECTRON_RUN_AS_NODE
+try {
+  $env:ELECTRON_RUN_AS_NODE = '1'
+  & $electronExecutable (Join-Path $projectDirectory 'scripts\verify-packaged-paths.js') $asarPath
+  if ($LASTEXITCODE -ne 0) { throw 'Packaged application path verification failed.' }
+} finally { $env:ELECTRON_RUN_AS_NODE = $previousRunAsNode }
 
 $resourceDirectory = Split-Path -Parent $asarPath
 $readmePath = Join-Path $resourceDirectory 'README.txt'

@@ -23,3 +23,7 @@ Stormworks に合わせた自動起動は Windows のタスクスケジューラ
 本アプリはMITライセンスで提供します。ライセンス本文と第三者ライセンスはアプリ内の「ライセンスを表示」で確認できます。Stormworks: Build and Rescue は Geometa の製品です。本アプリは非公式で、Geometa および Steam とは関係ありません。
 
 本アプリは現状のまま提供されます。使用、インストール、更新やStormworksとの併用によるデータ損失、動作不良その他の損害について作者は責任を負いません。StormworksやWebMapの仕様変更により機能を利用できなくなる場合があります。
+
+開発
+----
+`src/main` に本体処理、`src/renderer` に画面、`assets` に画像、`native` にネイティブ部品を配置しています。Windows x64で `npm ci`、`npm test`、`npm run dist` を実行できます。
