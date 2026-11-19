@@ -1341,7 +1341,8 @@ async function setStormworksLaunchTask(enabled) {
     `$currentUser = ${powerShellQuote(scheduledTaskUser)}`,
     `Stop-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -ErrorAction SilentlyContinue`,
     `$action = New-ScheduledTaskAction -Execute ${powerShellQuote(watcherPath)} -Argument ${powerShellQuote(watcherArguments)}`,
-    '$trigger = New-ScheduledTaskTrigger -AtLogOn',
+    // ユーザーを限定しないログオントリガーは登録に管理者権限が必要になる。
+    '$trigger = New-ScheduledTaskTrigger -AtLogOn -User $currentUser',
     '$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Limited',
     `Register-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -Action $action -Trigger $trigger -Principal $principal -Description 'Stormworks の起動を検出して WebMap Overlay を起動します。' -Force | Out-Null`,
     `Start-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -ErrorAction SilentlyContinue`,
@@ -1688,7 +1689,8 @@ ipcMain.handle('set-stormworks-launch', async (_event, enabled) => {
       type: 'question',
       title: 'Stormworks 起動連動',
       message: `タスクスケジューラへ起動待機タスクを${action}します。`,
-      detail: 'Windowsの管理者確認が表示されます。拒否した場合は設定を変更しません。',
+      // 新規登録は通常権限で済む。以前のバージョンが登録したタスクの変更・削除だけ昇格が必要になる。
+      detail: '以前のバージョンで登録したタスクを変更・削除する場合は、Windowsの管理者確認が表示されることがあります。拒否した場合は設定を変更しません。',
       buttons: ['続行', 'キャンセル'],
       defaultId: 0,
       cancelId: 1,

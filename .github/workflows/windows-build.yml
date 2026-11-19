@@ -20,6 +20,11 @@ jobs:
     name: Test and conditionally build Windows x64
     runs-on: windows-2022
     timeout-minutes: 30
+    # Build provenance attestations need an OIDC token and permission to store attestations.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         shell: pwsh
@@ -77,6 +82,22 @@ jobs:
           }
           "installer=$installer" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT
+
+      # Attest the self-signed installer and the files it installs, so anyone can check
+      # that they were built from this repository and commit. Signing changes the
+      # installer hash, so this must run after the self-sign step.
+      # WebMapReleaseTools only offers builds where a step with this exact name succeeded.
+      - name: Attest build provenance
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            dist/${{ steps.outputs.outputs.installer }}
+            dist/win-unpacked/WebMap Overlay.exe
+            dist/win-unpacked/resources/WebMapOverlayInjector.exe
+            dist/win-unpacked/resources/WebMapOverlayHook.dll
+            dist/win-unpacked/resources/WebMapOverlayWriter.dll
+            dist/win-unpacked/resources/WebMapOverlayWatcher.exe
 
       - name: Upload build outputs
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
