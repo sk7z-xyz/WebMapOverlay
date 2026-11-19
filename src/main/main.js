@@ -1689,7 +1689,8 @@ ipcMain.handle('set-stormworks-launch', async (_event, enabled) => {
       type: 'question',
       title: 'Stormworks 起動連動',
       message: `タスクスケジューラへ起動待機タスクを${action}します。`,
-      detail: 'Windowsの管理者確認が表示されます。拒否した場合は設定を変更しません。',
+      // 新規登録は通常権限で済む。以前のバージョンが登録したタスクの変更・削除だけ昇格が必要になる。
+      detail: '以前のバージョンで登録したタスクを変更・削除する場合は、Windowsの管理者確認が表示されることがあります。拒否した場合は設定を変更しません。',
       buttons: ['続行', 'キャンセル'],
       defaultId: 0,
       cancelId: 1,
