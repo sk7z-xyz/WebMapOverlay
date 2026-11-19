@@ -1341,7 +1341,8 @@ async function setStormworksLaunchTask(enabled) {
     `$currentUser = ${powerShellQuote(scheduledTaskUser)}`,
     `Stop-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -ErrorAction SilentlyContinue`,
     `$action = New-ScheduledTaskAction -Execute ${powerShellQuote(watcherPath)} -Argument ${powerShellQuote(watcherArguments)}`,
-    '$trigger = New-ScheduledTaskTrigger -AtLogOn',
+    // ユーザーを限定しないログオントリガーは登録に管理者権限が必要になる。
+    '$trigger = New-ScheduledTaskTrigger -AtLogOn -User $currentUser',
     '$principal = New-ScheduledTaskPrincipal -UserId $currentUser -LogonType Interactive -RunLevel Limited',
     `Register-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -Action $action -Trigger $trigger -Principal $principal -Description 'Stormworks の起動を検出して WebMap Overlay を起動します。' -Force | Out-Null`,
     `Start-ScheduledTask -TaskName ${powerShellQuote(stormworksLaunchTaskName)} -ErrorAction SilentlyContinue`,
